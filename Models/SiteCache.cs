@@ -2,5 +2,5 @@
 
 public class SiteCache
 {
-  public List<string>? Urls { get; set; }
+  public Dictionary<string, DateTime>? PublishedPages { get; set; }
 }
