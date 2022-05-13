@@ -35,7 +35,7 @@ public class WebSiteService
   public DateTime TryGetPagePublishDate(string pageUrl)
   {
     //_chromeDriver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(5);
-    _chromeDriver.Navigate().GoToUrl("https://phys.org/news/2022-05-sleuthing-3d-quantum-liquid.html");
+    _chromeDriver.Navigate().GoToUrl(pageUrl);
     // Brute force method to try FIND the publish date
     foreach (var dateAttribute in DATE_ATTRIBUTES)
     {
@@ -63,12 +63,6 @@ public class WebSiteService
     }
     // Failed, return current time as placeholder
     return DateTime.Now.ToUniversalTime();
-  }
-
-  public string GetSiteSourcePage(string url)
-  {
-    _chromeDriver.Url = url;
-    return _chromeDriver.PageSource;
   }
 
   public List<string> GetLinksPresentAtPage(string pageUrl)
@@ -143,6 +137,25 @@ public class WebSiteService
     var result = Uri.TryCreate(link, UriKind.Absolute, out uriResult)
                   && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
     return result;
+  }
+
+  public List<string> TryGetPageKeywords(string pageUrl)
+  {
+    var pageKeywords = new List<string>();
+    try
+    {
+      _chromeDriver.Navigate().GoToUrl(pageUrl);
+      var aTags = _chromeDriver.FindElements(By.TagName("a"));
+      foreach (var element in aTags)
+      {
+        pageKeywords.Add(element.GetAttribute("href"));
+      }
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine("Error: TryGetPageKeywords at : " + pageUrl + "\n" + ex.Message);
+    }
+    return pageKeywords.Distinct().ToList();
   }
 
 }

@@ -27,6 +27,7 @@ var emailBody = new StringBuilder();
 
 //emailClient.SendEmail(settings.EmailSettings, new Email() { Subject = "Scrape Results", Body = emailBody.ToString() });
 
+// Create/Update site cache
 foreach (var site in settings.Sites)
 {
   // Get site cache
@@ -38,10 +39,24 @@ foreach (var site in settings.Sites)
   {
     PublishedPages = siteMap
   });
-  // Get new pages
+}
+
+// TryGet recent pages
+foreach (var site in settings.Sites)
+{
+  // Get site cache
+  var siteCache = await cacheService.GetSiteCache(site);
+  // Sort site urls by date
+  var sortedPageUrls = siteCache?.PublishedPages?.OrderByDescending(x => x.Value).ToList();
+  // Get new pages according to settings
+  var publicationTime = DateTime.Now.AddDays(-settings.PublishedSinceHowManyDays).ToUniversalTime();
+  var recentPageUrls = sortedPageUrls?.FindAll(x => x.Value >= publicationTime);
   // Filter by keywords
+  var keys = "asdf";
   // ForEach relevant page > add to email body
 }
+
+
 
 // Send email
 
