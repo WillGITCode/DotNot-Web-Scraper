@@ -14,7 +14,8 @@ IConfiguration Configuration = new ConfigurationBuilder()
 // Member variables
 var settings = Configuration.Get<Settings>();
 var dateAttributes = settings.Constants?.DATE_ATTRIBUTES ?? new string[] { };
-var webService = new WebSiteService(dateAttributes);
+var keywordAttributes = settings.Constants?.KEYWORD_ATTRIBUTES ?? new string[] { };
+var webService = new WebSiteService(dateAttributes, keywordAttributes);
 var emailClient = new EmailClient();
 var cacheService = new CacheService();
 var emailBody = new StringBuilder();
@@ -51,8 +52,13 @@ foreach (var site in settings.Sites)
   // Get new pages according to settings
   var publicationTime = DateTime.Now.AddDays(-settings.PublishedSinceHowManyDays).ToUniversalTime();
   var recentPageUrls = sortedPageUrls?.FindAll(x => x.Value >= publicationTime);
-  // Filter by keywords
-  var keys = "asdf";
+  foreach (var page in recentPageUrls)
+  {
+    // Filter by keywords
+    var pageKeywords = webService.TryGetPageKeywords(page.Key);
+    var key = "asdf";
+
+  }
   // ForEach relevant page > add to email body
 }
 

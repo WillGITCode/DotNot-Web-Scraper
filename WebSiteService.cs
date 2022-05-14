@@ -10,8 +10,9 @@ public class WebSiteService
 {
   private readonly WebDriver _chromeDriver;
   private readonly string[] DATE_ATTRIBUTES;
+  private readonly string[] KEYWORD_ATTRIBUTES;
   private readonly Regex _dateRegex = new(@"\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])");
-  public WebSiteService(string[]? dateAttributes)
+  public WebSiteService(string[]? dateAttributes, string[]? keywordAttributes)
   {
     var options = new ChromeOptions();
     options.AddArgument("--headless");
@@ -23,6 +24,10 @@ public class WebSiteService
     if (dateAttributes != null)
     {
       DATE_ATTRIBUTES = dateAttributes;
+    }
+    if (keywordAttributes != null)
+    {
+      KEYWORD_ATTRIBUTES = keywordAttributes;
     }
   }
 
@@ -145,10 +150,26 @@ public class WebSiteService
     try
     {
       _chromeDriver.Navigate().GoToUrl(pageUrl);
-      var aTags = _chromeDriver.FindElements(By.TagName("a"));
-      foreach (var element in aTags)
+      // Brute force method to try FIND the keywords
+      foreach (var attribute in KEYWORD_ATTRIBUTES)
       {
-        pageKeywords.Add(element.GetAttribute("href"));
+        var potentialKeyElements = _chromeDriver.FindElements(By.CssSelector(attribute));
+        foreach (var element in potentialKeyElements)
+        {
+          var keywordText = element.Text;
+          if (keywordText != null && keywordText.Length > 0)
+          {
+            pageKeywords.Add(keywordText);
+            continue;
+          }
+          var keywordsContent = element.GetAttribute("content");
+          if (keywordsContent != null && keywordsContent.Length > 0)
+          {
+            var matches = Regex.Matches(keywordsContent, @"((\b[^\s]+\b)((?<=\.\w).)?)");
+            pageKeywords.AddRange(matches.Cast<Match>().Select(match => match.Value).ToList());
+            continue;
+          }
+        }
       }
     }
     catch (Exception ex)
